@@ -29,7 +29,6 @@ public class EventService {
         Food food = new Food();
         food.setFoodType(list.stream().findAny().get());
         food.setExpirationDate(LocalDateTime.now().plusHours(6));
-        //zooEvent.getZooService().feed(food);
         zooService.feed(food);
     }
 }
