@@ -36,13 +36,13 @@ public class AnimalAspect {
         Animal animal = null;
         Object pointObject = proceedingJoinPoint.getTarget();
         if (pointObject instanceof Bird)
-            animal = (Bird) proceedingJoinPoint.getTarget();
+            animal = (Bird) pointObject;
         else if (pointObject instanceof Fish)
-            animal = (Fish) proceedingJoinPoint.getTarget();
+            animal = (Fish) pointObject;
         else if (pointObject instanceof Cat)
-            animal = (Cat) proceedingJoinPoint.getTarget();
+            animal = (Cat) pointObject;
         else if (pointObject instanceof Dog)
-            animal = (Dog) proceedingJoinPoint.getTarget();
+            animal = (Dog) pointObject;
 
         if (animal != null)
             return animal.getPossibleFoodTypes().stream().anyMatch(x -> x.equals(food.getFoodType())) ?
