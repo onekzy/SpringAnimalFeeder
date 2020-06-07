@@ -1,12 +1,14 @@
 package test.aspect;
 
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.springframework.stereotype.Component;
-import test.*;
+import test.Animal;
 import test.dto.Food;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Aspect
 @Component
@@ -26,6 +28,21 @@ public class AnimalAspect {
         System.out.println("end eat");
     }
 
+    @AfterReturning(value = "eatPoint()")
+    public void returnEat(JoinPoint joinPoint) {
+        Animal animal = (Animal) joinPoint.getTarget();
+        Food food = (Food) joinPoint.getArgs()[0];
+        String log,
+                animalName = animal.getClass().getSimpleName().toLowerCase(),
+                foodName = food.getFoodType().toString().toLowerCase();
+        if (animal.isHungry()) {
+            log = String.format("The %s cannot eat %s", animalName, foodName);
+        } else {
+            log = String.format("The %s has eaten %s successfully", animalName, foodName);
+        }
+        System.out.println(log);
+    }
+
     @AfterThrowing(value = "eatPoint()", throwing = "ex")
     public void eatFailed(Throwable ex) {
         System.out.println("eat failed: " + ex.getMessage());
@@ -34,34 +51,10 @@ public class AnimalAspect {
     @Around(value = "eatPoint() && args(food)")
     public Object proceedFeeding(ProceedingJoinPoint proceedingJoinPoint, Food food) throws Throwable {
         Animal animal = null;
-        Object pointObject = proceedingJoinPoint.getTarget();
-        if (pointObject instanceof Bird)
-            animal = (Bird) pointObject;
-        else if (pointObject instanceof Fish)
-            animal = (Fish) pointObject;
-        else if (pointObject instanceof Cat)
-            animal = (Cat) pointObject;
-        else if (pointObject instanceof Dog)
-            animal = (Dog) pointObject;
-
-        if (animal != null)
-            return animal.getPossibleFoodTypes().stream().anyMatch(x -> x.equals(food.getFoodType())) ?
-                    eatAround(proceedingJoinPoint, food) : false;
-        return false;
-    }
-
-    private Object eatAround(ProceedingJoinPoint proceedingJoinPoint, Food food) throws Throwable {
-        String target = proceedingJoinPoint.getTarget().getClass().getSimpleName();
-        if (LocalDateTime.now().isAfter(food.getExpirationDate()))
-            return false;
-        try {
-            Object result = proceedingJoinPoint.proceed();
-            System.out.println(String.format("The %s has eaten %s successfully",
-                    target,
-                    food.getFoodType().toString().toLowerCase()));
-            return result;
-        } catch (Throwable e) {
-            throw e;
+        if (Objects.nonNull(animal = (Animal) proceedingJoinPoint.getTarget())) {
+            return animal.getPossibleFoodTypes().contains(food.getFoodType()) &&
+                    !LocalDateTime.now().isAfter(food.getExpirationDate()) ? proceedingJoinPoint.proceed() : false;
         }
+        return false;
     }
 }

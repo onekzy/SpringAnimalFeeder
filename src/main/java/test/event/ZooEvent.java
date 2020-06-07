@@ -2,20 +2,23 @@ package test.event;
 
 
 import org.springframework.context.ApplicationEvent;
+import test.Animal;
 import test.dto.Food;
 import test.service.ZooService;
 import test.service.ZooServiceImpl;
 
+import java.util.List;
+
 public class ZooEvent extends ApplicationEvent {
 
-    private Food food;
+    private List<Animal> hungryAnimals;
 
-    public ZooEvent(Object source, Food food, ZooServiceImpl zooService) {
+    public ZooEvent(Object source, List<Animal> hungryAnimals) {
         super(source);
-        this.food = food;
+        this.hungryAnimals = hungryAnimals;
     }
 
-    public Food getFood() {
-        return food;
+    public List<Animal> getHungryAnimals() {
+        return hungryAnimals;
     }
 }

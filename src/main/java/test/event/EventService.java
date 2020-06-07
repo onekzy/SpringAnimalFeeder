@@ -5,30 +5,31 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import test.dto.Food;
 import test.dto.FoodType;
-import test.service.ZooServiceImpl;
+import test.service.ZooService;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
 
 @Service
 public class EventService {
-    private final ZooServiceImpl zooService;
-
-    private static List<FoodType> list = new LinkedList<>(Arrays.asList(FoodType.values()));
+    private final ZooService zooService;
 
     @Autowired
-    public EventService(ZooServiceImpl zooService) {
+    public EventService(ZooService zooService) {
         this.zooService = zooService;
     }
 
     @EventListener(ZooEvent.class)
     public void onApplicationEvent(ZooEvent zooEvent) {
-        list.removeIf(x -> x.equals(zooEvent.getFood().getFoodType()));
+        FoodType relevantFoodType = zooEvent.getHungryAnimals()
+                .stream()
+                .map(animal -> animal.getPossibleFoodTypes())
+                .flatMap(foods -> foods.stream())
+                .distinct()
+                .findAny()
+                .orElseThrow(RuntimeException::new); //Exception could be customized
         Food food = new Food();
-        food.setFoodType(list.stream().findAny().get());
+        food.setFoodType(relevantFoodType);
         food.setExpirationDate(LocalDateTime.now().plusHours(6));
-        zooService.feed(food);
+        zooService.feed(zooEvent.getHungryAnimals(), food);
     }
 }
