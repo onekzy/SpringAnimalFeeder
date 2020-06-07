@@ -3,11 +3,13 @@ package test.event;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import test.Animal;
 import test.dto.Food;
 import test.dto.FoodType;
 import test.service.ZooService;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 
 @Service
 public class EventService {
@@ -22,8 +24,8 @@ public class EventService {
     public void onApplicationEvent(ZooEvent zooEvent) {
         FoodType relevantFoodType = zooEvent.getHungryAnimals()
                 .stream()
-                .map(animal -> animal.getPossibleFoodTypes())
-                .flatMap(foods -> foods.stream())
+                .map(Animal::getPossibleFoodTypes)
+                .flatMap(Collection::stream)
                 .distinct()
                 .findAny()
                 .orElseThrow(RuntimeException::new); //Exception could be customized
